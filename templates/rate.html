@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2>Rate Pokemon</h2>
+        
+        <!-- Search Section -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5>Search Pokemon</h5>
+                <div class="input-group">
+                    <input type="text" id="search-input" class="form-control" placeholder="Search Pokemon by name...">
+                    <button class="btn btn-outline-secondary" type="button" id="search-btn">Search</button>
+                    <button class="btn btn-primary" type="button" id="random-btn">Get Random Unrated</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pokemon Display -->
+        <div id="pokemon-display" class="card" style="display: none;">
+            <div class="card-body text-center">
+                <div id="pokemon-info">
+                    <!-- Pokemon info will be loaded here -->
+                </div>
+                
+                <!-- Rating Form -->
+                <div class="mt-4">
+                    <h5>Rate this Pokemon</h5>
+                    <form id="rating-form">
+                        <div class="row justify-content-center">
+                            <div class="col-md-4">
+                                <label for="rating" class="form-label">Rating (any number)</label>
+                                <input type="number" step="0.1" class="form-control" id="rating" required>
+                            </div>
+                        </div>
+                        <div class="row justify-content-center mt-3">
+                            <div class="col-md-8">
+                                <label for="comment" class="form-label">Comment (optional)</label>
+                                <textarea class="form-control" id="comment" rows="3" placeholder="Add your thoughts about this Pokemon..."></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success mt-3">Submit Rating</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Search Results -->
+        <div id="search-results" class="mt-4">
+            <!-- Search results will be displayed here -->
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <button class="btn btn-outline-primary w-100 mb-2" onclick="getUnratedPokemon()">
+                    <i class="fas fa-random"></i> Get Unrated Pokemon
+                </button>
+                <button class="btn btn-outline-info w-100 mb-2" onclick="showRecentRatings()">
+                    <i class="fas fa-history"></i> Recent Ratings
+                </button>
+            </div>
+        </div>
+        
+        <div id="recent-ratings" class="card mt-4" style="display: none;">
+            <div class="card-header">
+                <h5>Recent Ratings</h5>
+            </div>
+            <div class="card-body" id="recent-ratings-content">
+                <!-- Recent ratings will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPokemon = null;
+
+// Set up axios interceptor for authentication
+axios.interceptors.request.use(config => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+// Handle authentication errors
+axios.interceptors.response.use(
+    response => response,
+    error => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem('access_token');
+            alert('Please login to rate Pokemon');
+            window.location.href = '/login';
+        }
+        return Promise.reject(error);
+    }
+);
+
+document.getElementById('search-btn').addEventListener('click', searchPokemon);
+document.getElementById('search-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') searchPokemon();
+});
+document.getElementById('random-btn').addEventListener('click', getRandomUnrated);
+document.getElementById('rating-form').addEventListener('submit', submitRating);
+
+async function searchPokemon() {
+    const query = document.getElementById('search-input').value.trim();
+    if (!query) return;
+    
+    try {
+        const response = await axios.get(`/api/pokemon/search/${encodeURIComponent(query)}`);
+        displaySearchResults(response.data);
+    } catch (error) {
+        console.error('Error searching Pokemon:', error);
+        alert('Error searching Pokemon');
+    }
+}
+
+function displaySearchResults(pokemon) {
+    const resultsDiv = document.getElementById('search-results');
+    if (pokemon.length === 0) {
+        resultsDiv.innerHTML = '<div class="alert alert-warning">No Pokemon found</div>';
+        return;
+    }
+    
+    const resultsHTML = pokemon.map(p => `
+        <div class="card mb-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h6 class="mb-0">${p.name}</h6>
+                        <small class="text-muted">Gen ${p.generation} | ${p.type1}${p.type2 ? '/' + p.type2 : ''}</small>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-sm btn-primary" onclick="loadPokemon('${p.name}')">Rate This</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    resultsDiv.innerHTML = `<h5>Search Results</h5>${resultsHTML}`;
+}
+
+async function loadPokemon(name) {
+    try {
+        const response = await axios.get(`/api/pokemon/${encodeURIComponent(name)}`);
+        displayPokemon(response.data);
+    } catch (error) {
+        console.error('Error loading Pokemon:', error);
+        alert('Error loading Pokemon');
+    }
+}
+
+function displayPokemon(data) {
+    currentPokemon = data.pokemon;
+    const pokemon = data.pokemon;
+    const rating = data.rating;
+    
+    const pokemonInfo = document.getElementById('pokemon-info');
+    pokemonInfo.innerHTML = `
+        <h3>${pokemon.name}</h3>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                ${pokemon.artwork_url ? `<img src="${pokemon.artwork_url}" class="pokemon-image img-fluid mb-3" alt="${pokemon.name}">` : ''}
+                <p><strong>Generation:</strong> ${pokemon.generation}</p>
+                <p><strong>Type:</strong> ${pokemon.type1}${pokemon.type2 ? '/' + pokemon.type2 : ''}</p>
+                ${rating ? `
+                    <div class="alert alert-info">
+                        <strong>Current Rating:</strong> ${rating.rating}
+                        ${rating.comment ? `<br><em>"${rating.comment}"</em>` : ''}
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    
+    // Pre-fill form if rating exists
+    if (rating) {
+        document.getElementById('rating').value = rating.rating;
+        document.getElementById('comment').value = rating.comment || '';
+    } else {
+        document.getElementById('rating').value = '';
+        document.getElementById('comment').value = '';
+    }
+    
+    document.getElementById('pokemon-display').style.display = 'block';
+    document.getElementById('search-results').innerHTML = '';
+}
+
+async function getRandomUnrated() {
+    try {
+        const response = await axios.get('/api/unrated-pokemon?limit=1');
+        if (response.data.length > 0) {
+            await loadPokemon(response.data[0].name);
+        } else {
+            alert('No unrated Pokemon found!');
+        }
+    } catch (error) {
+        console.error('Error getting unrated Pokemon:', error);
+        alert('Error getting unrated Pokemon');
+    }
+}
+
+async function submitRating(e) {
+    e.preventDefault();
+    
+    if (!currentPokemon) {
+        alert('Please select a Pokemon first');
+        return;
+    }
+    
+    const rating = parseFloat(document.getElementById('rating').value);
+    const comment = document.getElementById('comment').value.trim();
+    
+    try {
+        await axios.post('/api/rate', {
+            pokemon_name: currentPokemon.name,
+            rating: rating,
+            comment: comment || null
+        });
+        
+        alert('Rating submitted successfully!');
+        
+        // Reload the Pokemon to show updated rating
+        await loadPokemon(currentPokemon.name);
+    } catch (error) {
+        console.error('Error submitting rating:', error);
+        if (error.response?.status === 401) {
+            alert('Please login to submit ratings');
+            window.location.href = '/login';
+        } else {
+            alert('Error submitting rating');
+        }
+    }
+}
+
+async function getUnratedPokemon() {
+    try {
+        const response = await axios.get('/api/unrated-pokemon?limit=10');
+        displaySearchResults(response.data);
+    } catch (error) {
+        console.error('Error getting unrated Pokemon:', error);
+        alert('Error getting unrated Pokemon');
+    }
+}
+
+async function showRecentRatings() {
+    try {
+        const response = await axios.get('/api/analytics/top-rated?limit=5');
+        const recentDiv = document.getElementById('recent-ratings');
+        const contentDiv = document.getElementById('recent-ratings-content');
+        
+        const ratingsHTML = response.data.map(r => `
+            <div class="mb-2">
+                <strong>${r.pokemon_name}</strong>: ${r.rating}
+                ${r.comment ? `<br><small class="text-muted">"${r.comment}"</small>` : ''}
+            </div>
+        `).join('<hr>');
+        
+        contentDiv.innerHTML = ratingsHTML;
+        recentDiv.style.display = 'block';
+    } catch (error) {
+        console.error('Error loading recent ratings:', error);
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Pokemon Rating Analytics</h2>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h4 id="total-pokemon">-</h4>
+                <p>Total Pokemon</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h4 id="total-rated">-</h4>
+                <p>Rated Pokemon</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h4 id="average-rating">-</h4>
+                <p>Average Rating</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h4 id="rating-range">-</h4>
+                <p>Rating Range</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-trophy text-warning"></i> Top 10 Rated Pokemon</h5>
+            </div>
+            <div class="card-body">
+                <div id="top-rated" class="list-group list-group-flush">
+                    <!-- Top rated will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-thumbs-down text-danger"></i> Bottom 10 Rated Pokemon</h5>
+            </div>
+            <div class="card-body">
+                <div id="bottom-rated" class="list-group list-group-flush">
+                    <!-- Bottom rated will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-filter"></i> Filter by Type or Generation</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="type-filter" class="form-label">Filter by Type:</label>
+                        <select id="type-filter" class="form-select">
+                            <option value="">Select a type...</option>
+                            <option value="normal">Normal</option>
+                            <option value="fire">Fire</option>
+                            <option value="water">Water</option>
+                            <option value="electric">Electric</option>
+                            <option value="grass">Grass</option>
+                            <option value="ice">Ice</option>
+                            <option value="fighting">Fighting</option>
+                            <option value="poison">Poison</option>
+                            <option value="ground">Ground</option>
+                            <option value="flying">Flying</option>
+                            <option value="psychic">Psychic</option>
+                            <option value="bug">Bug</option>
+                            <option value="rock">Rock</option>
+                            <option value="ghost">Ghost</option>
+                            <option value="dragon">Dragon</option>
+                            <option value="dark">Dark</option>
+                            <option value="steel">Steel</option>
+                            <option value="fairy">Fairy</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="gen-filter" class="form-label">Filter by Generation:</label>
+                        <select id="gen-filter" class="form-select">
+                            <option value="">Select a generation...</option>
+                            <option value="1">Generation 1 (Kanto)</option>
+                            <option value="2">Generation 2 (Johto)</option>
+                            <option value="3">Generation 3 (Hoenn)</option>
+                            <option value="4">Generation 4 (Sinnoh)</option>
+                            <option value="5">Generation 5 (Unova)</option>
+                            <option value="6">Generation 6 (Kalos)</option>
+                            <option value="7">Generation 7 (Alola)</option>
+                            <option value="8">Generation 8 (Galar)</option>
+                            <option value="9">Generation 9 (Paldea)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="filtered-results" class="mt-4" style="display: none;">
+                    <h6>Filtered Results:</h6>
+                    <div id="filtered-content">
+                        <!-- Filtered results will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadStatistics();
+    loadTopRated();
+    loadBottomRated();
+    
+    document.getElementById('type-filter').addEventListener('change', filterByType);
+    document.getElementById('gen-filter').addEventListener('change', filterByGeneration);
+});
+
+async function loadStatistics() {
+    try {
+        const response = await axios.get('/api/analytics/statistics');
+        const stats = response.data;
+        
+        document.getElementById('total-pokemon').textContent = stats.total_pokemon;
+        document.getElementById('total-rated').textContent = stats.total_rated;
+        document.getElementById('average-rating').textContent = stats.average_rating.toFixed(2);
+        document.getElementById('rating-range').textContent = `${stats.min_rating} - ${stats.max_rating}`;
+    } catch (error) {
+        console.error('Error loading statistics:', error);
+    }
+}
+
+async function loadTopRated() {
+    try {
+        const response = await axios.get('/api/analytics/top-rated?limit=10');
+        const topRated = response.data;
+        
+        const html = topRated.map((pokemon, index) => `
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge bg-primary rounded-pill me-2">${index + 1}</span>
+                    <strong>${pokemon.pokemon_name}</strong>
+                    ${pokemon.comment ? `<br><small class="text-muted">"${pokemon.comment}"</small>` : ''}
+                </div>
+                <span class="badge bg-success rounded-pill">${pokemon.rating}</span>
+            </div>
+        `).join('');
+        
+        document.getElementById('top-rated').innerHTML = html;
+    } catch (error) {
+        console.error('Error loading top rated:', error);
+    }
+}
+
+async function loadBottomRated() {
+    try {
+        const response = await axios.get('/api/analytics/bottom-rated?limit=10');
+        const bottomRated = response.data;
+        
+        const html = bottomRated.map((pokemon, index) => `
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge bg-secondary rounded-pill me-2">${index + 1}</span>
+                    <strong>${pokemon.pokemon_name}</strong>
+                    ${pokemon.comment ? `<br><small class="text-muted">"${pokemon.comment}"</small>` : ''}
+                </div>
+                <span class="badge bg-danger rounded-pill">${pokemon.rating}</span>
+            </div>
+        `).join('');
+        
+        document.getElementById('bottom-rated').innerHTML = html;
+    } catch (error) {
+        console.error('Error loading bottom rated:', error);
+    }
+}
+
+async function filterByType() {
+    const type = document.getElementById('type-filter').value;
+    if (!type) {
+        document.getElementById('filtered-results').style.display = 'none';
+        return;
+    }
+    
+    // Clear generation filter
+    document.getElementById('gen-filter').value = '';
+    
+    try {
+        const response = await axios.get(`/api/analytics/by-type/${type}`);
+        displayFilteredResults(response.data, `${type.charAt(0).toUpperCase() + type.slice(1)} Type Pokemon`);
+    } catch (error) {
+        console.error('Error filtering by type:', error);
+    }
+}
+
+async function filterByGeneration() {
+    const generation = document.getElementById('gen-filter').value;
+    if (!generation) {
+        document.getElementById('filtered-results').style.display = 'none';
+        return;
+    }
+    
+    // Clear type filter
+    document.getElementById('type-filter').value = '';
+    
+    try {
+        const response = await axios.get(`/api/analytics/by-generation/${generation}`);
+        displayFilteredResults(response.data, `Generation ${generation} Pokemon`);
+    } catch (error) {
+        console.error('Error filtering by generation:', error);
+    }
+}
+
+function displayFilteredResults(data, title) {
+    if (data.length === 0) {
+        document.getElementById('filtered-content').innerHTML = '<div class="alert alert-info">No rated Pokemon found for this filter.</div>';
+        document.getElementById('filtered-results').style.display = 'block';
+        return;
+    }
+    
+    // Calculate average for this filter
+    const average = data.reduce((sum, item) => sum + item.rating, 0) / data.length;
+    
+    // Sort by rating (descending)
+    data.sort((a, b) => b.rating - a.rating);
+    
+    const html = `
+        <div class="alert alert-info">
+            <strong>${title}</strong><br>
+            Average Rating: <strong>${average.toFixed(2)}</strong> | 
+            Count: <strong>${data.length}</strong>
+        </div>
+        <div class="row">
+            ${data.map(pokemon => `
+                <div class="col-md-4 mb-2">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><strong>${pokemon.pokemon_name}</strong></span>
+                                <span class="badge bg-primary">${pokemon.rating}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    document.getElementById('filtered-content').innerHTML = html;
+    document.getElementById('filtered-results').style.display = 'block';
+}
+</script>
+{% endblock %}
