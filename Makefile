@@ -115,3 +115,8 @@ backup-db: ## Backup the database
 	else \
 		echo "❌ No database found to backup"; \
 	fi
+
+db-admin: ## Start web-based database admin interface
+	@echo "🗄️ Starting database admin interface..."
+	@echo "Database admin will be available at http://localhost:8080"
+	docker-compose --profile admin up db-admin

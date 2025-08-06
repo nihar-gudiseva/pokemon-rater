@@ -22,6 +22,7 @@ if "%1"=="manual-setup" goto manual-setup
 if "%1"=="manual-start" goto manual-start
 if "%1"=="check-env" goto check-env
 if "%1"=="backup-db" goto backup-db
+if "%1"=="db-admin" goto db-admin
 
 echo Unknown command: %1
 goto help
@@ -48,6 +49,7 @@ echo   manual-setup   Setup for manual (non-Docker) development
 echo   manual-start   Start manually without Docker
 echo   check-env      Check if .env file exists
 echo   backup-db      Backup the database
+echo   db-admin       Start database admin interface
 echo.
 echo Quick Start:
 echo   make.bat setup    # First time setup
@@ -178,6 +180,12 @@ if exist data\pokemon_rater.db (
 ) else (
     echo No database found to backup
 )
+goto end
+
+:db-admin
+echo Starting database admin interface...
+echo Database admin will be available at http://localhost:8080
+docker-compose --profile admin up db-admin
 goto end
 
 :end
