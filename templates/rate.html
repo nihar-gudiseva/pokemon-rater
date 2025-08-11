@@ -224,7 +224,7 @@ async function submitRating(e) {
     
     try {
         await axios.post('/api/rate', {
-            pokemon_name: currentPokemon.name,
+            pokemon_id: currentPokemon.id,
             rating: rating,
             comment: comment || null
         });

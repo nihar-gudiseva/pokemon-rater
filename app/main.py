@@ -91,7 +91,7 @@ def rate_pokemon(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
-    return crud.create_or_update_rating(db, rating)
+    return crud.create_or_update_rating(db, rating, user_id=current_user.username)
 
 # Analytics endpoints
 @app.get("/api/analytics/top-rated")

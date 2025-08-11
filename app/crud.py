@@ -24,49 +24,46 @@ def create_pokemon(db: Session, pokemon: schemas.PokemonCreate):
     return db_pokemon
 
 
-def get_rating_by_pokemon_name(db: Session, pokemon_name: str):
-    return db.query(models.Rating).filter(models.Rating.pokemon_name == pokemon_name).first()
+def get_rating_by_pokemon_and_user(db: Session, pokemon_id: int, user_id: str = "admin"):
+    return db.query(models.Rating).filter(
+        models.Rating.pokemon_id == pokemon_id,
+        models.Rating.user_id == user_id
+    ).first()
 
 
-def create_or_update_rating(db: Session, rating: schemas.RatingCreate):
-    # Check if rating already exists
-    existing_rating = get_rating_by_pokemon_name(db, rating.pokemon_name)
-    
+def create_or_update_rating(db: Session, rating: schemas.RatingCreate, user_id: str = "admin"):
+    existing_rating = get_rating_by_pokemon_and_user(db, rating.pokemon_id, user_id)
     if existing_rating:
-        # Update existing rating
         existing_rating.rating = rating.rating
         existing_rating.comment = rating.comment
         db.commit()
         db.refresh(existing_rating)
         return existing_rating
-    else:
-        # Create new rating
-        pokemon = get_pokemon_by_name(db, rating.pokemon_name)
-        db_rating = models.Rating(
-            pokemon_id=pokemon.id if pokemon else None,
-            pokemon_name=rating.pokemon_name,
-            rating=rating.rating,
-            comment=rating.comment
-        )
-        db.add(db_rating)
-        db.commit()
-        db.refresh(db_rating)
-        return db_rating
+    db_rating = models.Rating(
+        pokemon_id=rating.pokemon_id,
+        rating=rating.rating,
+        comment=rating.comment,
+        user_id=user_id,
+    )
+    db.add(db_rating)
+    db.commit()
+    db.refresh(db_rating)
+    return db_rating
 
 
-def get_pokemon_with_rating(db: Session, pokemon_name: str):
+def get_pokemon_with_rating(db: Session, pokemon_name: str, user_id: str = "admin"):
     pokemon = get_pokemon_by_name(db, pokemon_name)
-    rating = get_rating_by_pokemon_name(db, pokemon_name)
+    rating = None
+    if pokemon:
+        rating = get_rating_by_pokemon_and_user(db, pokemon.id, user_id)
     return {"pokemon": pokemon, "rating": rating}
 
 
 def get_unrated_pokemon(db: Session, limit: int = 10):
     """Get Pokemon that haven't been rated yet."""
-    rated_pokemon_names = db.query(models.Rating.pokemon_name).distinct().all()
-    rated_names = [name[0] for name in rated_pokemon_names]
-    return db.query(models.Pokemon).filter(
-        ~models.Pokemon.name.in_(rated_names)
-    ).order_by(func.random()).limit(limit).all()
+    rated_pokemon_ids = db.query(models.Rating.pokemon_id).distinct().all()
+    rated_ids = [row[0] for row in rated_pokemon_ids]
+    return db.query(models.Pokemon).filter(~models.Pokemon.id.in_(rated_ids)).order_by(func.random()).limit(limit).all()
 
 
 def search_pokemon(db: Session, query: str, limit: int = 20):
@@ -90,10 +87,10 @@ def get_bottom_rated_pokemon(db: Session, limit: int = 10):
 def get_ratings_by_type(db: Session, pokemon_type: str):
     """Get average rating for a specific type."""
     results = db.query(
-        models.Rating.pokemon_name,
+        models.Pokemon.name,
         models.Rating.rating
     ).join(
-        models.Pokemon, models.Rating.pokemon_name == models.Pokemon.name
+        models.Pokemon, models.Rating.pokemon_id == models.Pokemon.id
     ).filter(
         (models.Pokemon.type1 == pokemon_type) | (models.Pokemon.type2 == pokemon_type)
     ).all()
@@ -105,10 +102,10 @@ def get_ratings_by_type(db: Session, pokemon_type: str):
 def get_ratings_by_generation(db: Session, generation: int):
     """Get ratings for Pokemon from a specific generation."""
     results = db.query(
-        models.Rating.pokemon_name,
+        models.Pokemon.name,
         models.Rating.rating
     ).join(
-        models.Pokemon, models.Rating.pokemon_name == models.Pokemon.name
+        models.Pokemon, models.Rating.pokemon_id == models.Pokemon.id
     ).filter(
         models.Pokemon.generation == generation
     ).all()

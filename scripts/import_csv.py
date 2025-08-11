@@ -110,11 +110,11 @@ def import_pokemon_data():
                         'artwork_url': artwork_url
                     }
                     
-                    # Check if Pokemon already exists
-                    existing_pokemon = crud.get_pokemon_by_name(db, name)
-                    if not existing_pokemon:
+                    # Check if Pokemon already exists or create it
+                    pokemon_obj = crud.get_pokemon_by_name(db, name)
+                    if not pokemon_obj:
                         pokemon_schema = schemas.PokemonCreate(**pokemon_data)
-                        crud.create_pokemon(db, pokemon_schema)
+                        pokemon_obj = crud.create_pokemon(db, pokemon_schema)
                         pokemon_count += 1
                     
                     # Create rating if it exists
@@ -126,11 +126,11 @@ def import_pokemon_data():
                                 comment = None
                             
                             rating_data = schemas.RatingCreate(
-                                pokemon_name=name,
+                                pokemon_id=pokemon_obj.id if pokemon_obj else None,
                                 rating=rating_value,
                                 comment=comment
                             )
-                            crud.create_or_update_rating(db, rating_data)
+                            crud.create_or_update_rating(db, rating_data, user_id="admin")
                             rating_count += 1
                         except ValueError:
                             print(f"Invalid rating for {name}: {rating}")

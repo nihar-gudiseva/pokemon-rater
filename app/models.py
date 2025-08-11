@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Text, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, Float, Text, DateTime, Boolean, ForeignKey
 from sqlalchemy.sql import func
 from .database import Base
 
@@ -22,8 +22,7 @@ class Rating(Base):
     __tablename__ = "ratings"
     
     id = Column(Integer, primary_key=True, index=True)
-    pokemon_id = Column(Integer, index=True)  # References Pokemon.id
-    pokemon_name = Column(String, index=True)  # For easier queries
+    pokemon_id = Column(Integer, ForeignKey("pokemon.id"), index=True)
     rating = Column(Float)
     comment = Column(Text, nullable=True)
     user_id = Column(String, default="admin")  # For future multi-user support

@@ -73,12 +73,12 @@ goto end
 
 :build
 echo Building Docker image...
-docker-compose build
+docker compose build
 goto end
 
 :init
-echo Initializing database...
-docker-compose --profile init up db-init
+echo Initializing database (one-off job)...
+docker compose --profile init run --rm db-init
 goto end
 
 :start
@@ -89,17 +89,17 @@ if not exist data\pokemon_rater.db (
     call :init
 )
 echo Starting application...
-docker-compose up app
+docker compose up app
 goto end
 
 :dev
 echo Starting in development mode...
-docker-compose up app
+docker compose up app
 goto end
 
 :stop
 echo Stopping containers...
-docker-compose down
+docker compose down
 goto end
 
 :restart
@@ -108,7 +108,7 @@ call :start
 goto end
 
 :logs
-docker-compose logs -f app
+docker compose logs -f app
 goto end
 
 :clean
@@ -145,11 +145,11 @@ if %errorlevel%==0 (
 goto end
 
 :status
-docker-compose ps
+docker compose ps
 goto end
 
 :shell
-docker-compose exec app /bin/bash
+docker compose exec app /bin/bash
 goto end
 
 :manual-setup
@@ -187,6 +187,8 @@ goto end
 :db-admin
 echo Starting database admin interface...
 echo Database admin will be available at http://localhost:8080
+echo Ensuring project network exists by starting app (detached)...
+docker compose up -d app
 docker compose --profile admin up -d db-admin
 goto end
 

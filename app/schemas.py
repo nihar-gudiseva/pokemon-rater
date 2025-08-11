@@ -27,13 +27,12 @@ class Pokemon(PokemonBase):
 
 
 class RatingBase(BaseModel):
-    pokemon_name: str
     rating: float
     comment: Optional[str] = None
 
 
 class RatingCreate(RatingBase):
-    pass
+    pokemon_id: int
 
 
 class Rating(RatingBase):
