@@ -23,6 +23,7 @@ if "%1"=="manual-start" goto manual-start
 if "%1"=="check-env" goto check-env
 if "%1"=="backup-db" goto backup-db
 if "%1"=="db-admin" goto db-admin
+if "%1"=="clean-hard" goto clean-hard
 
 echo Unknown command: %1
 goto help
@@ -50,6 +51,7 @@ echo   manual-start   Start manually without Docker
 echo   check-env      Check if .env file exists
 echo   backup-db      Backup the database
 echo   db-admin       Start database admin interface
+echo   clean-hard     Stop containers, prune networks, delete database file
 echo.
 echo Quick Start:
 echo   make.bat setup    # First time setup
@@ -185,7 +187,17 @@ goto end
 :db-admin
 echo Starting database admin interface...
 echo Database admin will be available at http://localhost:8080
-docker-compose --profile admin up db-admin
+docker compose --profile admin up -d db-admin
+goto end
+
+:clean-hard
+echo Stopping containers and removing volumes...
+docker compose down -v --remove-orphans
+echo Pruning unused Docker networks...
+docker network prune -f
+echo Deleting local SQLite database file if it exists...
+if exist data\pokemon_rater.db del /q data\pokemon_rater.db
+echo Done. You can re-initialize with: make.bat start
 goto end
 
 :end

@@ -66,7 +66,7 @@ def get_unrated_pokemon(db: Session, limit: int = 10):
     rated_names = [name[0] for name in rated_pokemon_names]
     return db.query(models.Pokemon).filter(
         ~models.Pokemon.name.in_(rated_names)
-    ).limit(limit).all()
+    ).order_by(func.random()).limit(limit).all()
 
 
 def search_pokemon(db: Session, query: str, limit: int = 20):
