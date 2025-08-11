@@ -92,13 +92,22 @@ def import_pokemon_data():
                     type1 = type1.lower().strip() if type1 and type1.strip() else 'normal'
                     type2 = type2.lower().strip() if type2 and type2.strip() else None
                     
+                    # Generate sprite URLs based on dex number
+                    sprite_url = None
+                    artwork_url = None
+                    if dex_num:
+                        sprite_url = f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{dex_num}.png"
+                        artwork_url = f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{dex_num}.png"
+                    
                     # Create Pokemon entry
                     pokemon_data = {
                         'name': name,
                         'dex_number': dex_num,
                         'type1': type1,
                         'type2': type2,
-                        'generation': generation
+                        'generation': generation,
+                        'sprite_url': sprite_url,
+                        'artwork_url': artwork_url
                     }
                     
                     # Check if Pokemon already exists
