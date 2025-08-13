@@ -75,13 +75,25 @@ def search_pokemon(db: Session, query: str, limit: int = 20):
 
 # Analytics functions
 def get_top_rated_pokemon(db: Session, limit: int = 10):
-    """Get top rated Pokemon."""
-    return db.query(models.Rating).order_by(desc(models.Rating.rating)).limit(limit).all()
+    """Get top rated Pokemon with names."""
+    results = db.query(
+        models.Pokemon.name,
+        models.Rating.rating,
+        models.Rating.comment
+    ).join(models.Pokemon, models.Rating.pokemon_id == models.Pokemon.id)
+    results = results.order_by(desc(models.Rating.rating)).limit(limit).all()
+    return [{"pokemon_name": row[0], "rating": row[1], "comment": row[2]} for row in results]
 
 
 def get_bottom_rated_pokemon(db: Session, limit: int = 10):
-    """Get bottom rated Pokemon."""
-    return db.query(models.Rating).order_by(asc(models.Rating.rating)).limit(limit).all()
+    """Get bottom rated Pokemon with names."""
+    results = db.query(
+        models.Pokemon.name,
+        models.Rating.rating,
+        models.Rating.comment
+    ).join(models.Pokemon, models.Rating.pokemon_id == models.Pokemon.id)
+    results = results.order_by(asc(models.Rating.rating)).limit(limit).all()
+    return [{"pokemon_name": row[0], "rating": row[1], "comment": row[2]} for row in results]
 
 
 def get_ratings_by_type(db: Session, pokemon_type: str):
