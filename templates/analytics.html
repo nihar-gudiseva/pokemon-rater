@@ -162,13 +162,18 @@ async function loadTopRated() {
         const topRated = response.data;
         
         const html = topRated.map((pokemon, index) => `
-            <div class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    <span class="badge bg-primary rounded-pill me-2">${index + 1}</span>
-                    <strong>${pokemon.pokemon_name}</strong>
-                    ${pokemon.comment ? `<br><small class="text-muted">"${pokemon.comment}"</small>` : ''}
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex align-items-start flex-grow-1" style="min-width:0;">
+                        <span class="badge bg-primary rounded-pill me-2">${index + 1}</span>
+                        ${pokemon.sprite_url ? `<img src="${pokemon.sprite_url}" alt="${pokemon.pokemon_name}" style="width:32px;height:32px;margin-right:8px;"/>` : ''}
+                        <div class="flex-grow-1" style="min-width:0;">
+                            <div><strong>${pokemon.pokemon_name}</strong></div>
+                            ${pokemon.comment ? `<div class="text-muted small mt-1 text-break" style="word-break: break-word; overflow-wrap: anywhere;">${pokemon.comment}</div>` : ''}
+                        </div>
+                    </div>
+                    <span class="badge bg-success rounded-pill">${pokemon.rating}</span>
                 </div>
-                <span class="badge bg-success rounded-pill">${pokemon.rating}</span>
             </div>
         `).join('');
         
@@ -184,13 +189,18 @@ async function loadBottomRated() {
         const bottomRated = response.data;
         
         const html = bottomRated.map((pokemon, index) => `
-            <div class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    <span class="badge bg-secondary rounded-pill me-2">${index + 1}</span>
-                    <strong>${pokemon.pokemon_name}</strong>
-                    ${pokemon.comment ? `<br><small class="text-muted">"${pokemon.comment}"</small>` : ''}
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex align-items-start flex-grow-1" style="min-width:0;">
+                        <span class="badge bg-secondary rounded-pill me-2">${index + 1}</span>
+                        ${pokemon.sprite_url ? `<img src="${pokemon.sprite_url}" alt="${pokemon.pokemon_name}" style="width:32px;height:32px;margin-right:8px;"/>` : ''}
+                        <div class="flex-grow-1" style="min-width:0;">
+                            <div><strong>${pokemon.pokemon_name}</strong></div>
+                            ${pokemon.comment ? `<div class="text-muted small mt-1 text-break" style="word-break: break-word; overflow-wrap: anywhere;">${pokemon.comment}</div>` : ''}
+                        </div>
+                    </div>
+                    <span class="badge bg-danger rounded-pill">${pokemon.rating}</span>
                 </div>
-                <span class="badge bg-danger rounded-pill">${pokemon.rating}</span>
             </div>
         `).join('');
         
@@ -261,7 +271,10 @@ function displayFilteredResults(data, title) {
                     <div class="card">
                         <div class="card-body py-2">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span><strong>${pokemon.pokemon_name}</strong></span>
+                                <div class="d-flex align-items-center">
+                                    ${pokemon.sprite_url ? `<img src="${pokemon.sprite_url}" alt="${pokemon.pokemon_name}" style="width:24px;height:24px;margin-right:8px;"/>` : ''}
+                                    <span><strong>${pokemon.pokemon_name}</strong></span>
+                                </div>
                                 <span class="badge bg-primary">${pokemon.rating}</span>
                             </div>
                         </div>

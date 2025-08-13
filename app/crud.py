@@ -75,32 +75,51 @@ def search_pokemon(db: Session, query: str, limit: int = 20):
 
 # Analytics functions
 def get_top_rated_pokemon(db: Session, limit: int = 10):
-    """Get top rated Pokemon with names."""
+    """Get top rated Pokemon with names and sprite URLs."""
     results = db.query(
         models.Pokemon.name,
         models.Rating.rating,
-        models.Rating.comment
+        models.Rating.comment,
+        models.Pokemon.sprite_url,
     ).join(models.Pokemon, models.Rating.pokemon_id == models.Pokemon.id)
     results = results.order_by(desc(models.Rating.rating)).limit(limit).all()
-    return [{"pokemon_name": row[0], "rating": row[1], "comment": row[2]} for row in results]
+    return [
+        {
+            "pokemon_name": row[0],
+            "rating": row[1],
+            "comment": row[2],
+            "sprite_url": row[3],
+        }
+        for row in results
+    ]
 
 
 def get_bottom_rated_pokemon(db: Session, limit: int = 10):
-    """Get bottom rated Pokemon with names."""
+    """Get bottom rated Pokemon with names and sprite URLs."""
     results = db.query(
         models.Pokemon.name,
         models.Rating.rating,
-        models.Rating.comment
+        models.Rating.comment,
+        models.Pokemon.sprite_url,
     ).join(models.Pokemon, models.Rating.pokemon_id == models.Pokemon.id)
     results = results.order_by(asc(models.Rating.rating)).limit(limit).all()
-    return [{"pokemon_name": row[0], "rating": row[1], "comment": row[2]} for row in results]
+    return [
+        {
+            "pokemon_name": row[0],
+            "rating": row[1],
+            "comment": row[2],
+            "sprite_url": row[3],
+        }
+        for row in results
+    ]
 
 
 def get_ratings_by_type(db: Session, pokemon_type: str):
     """Get average rating for a specific type."""
     results = db.query(
         models.Pokemon.name,
-        models.Rating.rating
+        models.Rating.rating,
+        models.Pokemon.sprite_url,
     ).join(
         models.Pokemon, models.Rating.pokemon_id == models.Pokemon.id
     ).filter(
@@ -108,14 +127,15 @@ def get_ratings_by_type(db: Session, pokemon_type: str):
     ).all()
     
     # Convert to list of dictionaries
-    return [{"pokemon_name": row[0], "rating": row[1]} for row in results]
+    return [{"pokemon_name": row[0], "rating": row[1], "sprite_url": row[2]} for row in results]
 
 
 def get_ratings_by_generation(db: Session, generation: int):
     """Get ratings for Pokemon from a specific generation."""
     results = db.query(
         models.Pokemon.name,
-        models.Rating.rating
+        models.Rating.rating,
+        models.Pokemon.sprite_url,
     ).join(
         models.Pokemon, models.Rating.pokemon_id == models.Pokemon.id
     ).filter(
@@ -123,7 +143,7 @@ def get_ratings_by_generation(db: Session, generation: int):
     ).all()
     
     # Convert to list of dictionaries
-    return [{"pokemon_name": row[0], "rating": row[1]} for row in results]
+    return [{"pokemon_name": row[0], "rating": row[1], "sprite_url": row[2]} for row in results]
 
 
 def get_rating_statistics(db: Session):
