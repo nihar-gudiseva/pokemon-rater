@@ -166,7 +166,14 @@ async function loadTopRated() {
                 <div class="d-flex justify-content-between align-items-start">
                     <div class="d-flex align-items-start flex-grow-1" style="min-width:0;">
                         <span class="badge bg-primary rounded-pill me-2">${index + 1}</span>
-                        ${pokemon.sprite_url ? `<img src="${pokemon.sprite_url}" alt="${pokemon.pokemon_name}" style="width:32px;height:32px;margin-right:8px;"/>` : ''}
+                        ${pokemon.sprite_url ? `
+                            <img 
+                                src="${pokemon.sprite_url}"
+                                alt="${pokemon.pokemon_name}"
+                                style="width:32px;height:32px;margin-right:8px;cursor:zoom-in;"
+                                onmouseover="this.dataset.src=this.src; this.src='${pokemon.artwork_url || pokemon.sprite_url}'; this.style.width='64px'; this.style.height='64px';"
+                                onmouseout="this.src=this.dataset.src; this.style.width='32px'; this.style.height='32px';"
+                            />` : ''}
                         <div class="flex-grow-1" style="min-width:0;">
                             <div><strong>${pokemon.pokemon_name}</strong></div>
                             ${pokemon.comment ? `<div class="text-muted small mt-1 text-break" style="word-break: break-word; overflow-wrap: anywhere;">${pokemon.comment}</div>` : ''}
@@ -193,7 +200,14 @@ async function loadBottomRated() {
                 <div class="d-flex justify-content-between align-items-start">
                     <div class="d-flex align-items-start flex-grow-1" style="min-width:0;">
                         <span class="badge bg-secondary rounded-pill me-2">${index + 1}</span>
-                        ${pokemon.sprite_url ? `<img src="${pokemon.sprite_url}" alt="${pokemon.pokemon_name}" style="width:32px;height:32px;margin-right:8px;"/>` : ''}
+                        ${pokemon.sprite_url ? `
+                            <img 
+                                src="${pokemon.sprite_url}"
+                                alt="${pokemon.pokemon_name}"
+                                style="width:32px;height:32px;margin-right:8px;cursor:zoom-in;"
+                                onmouseover="this.dataset.src=this.src; this.src='${pokemon.artwork_url || pokemon.sprite_url}'; this.style.width='64px'; this.style.height='64px';"
+                                onmouseout="this.src=this.dataset.src; this.style.width='32px'; this.style.height='32px';"
+                            />` : ''}
                         <div class="flex-grow-1" style="min-width:0;">
                             <div><strong>${pokemon.pokemon_name}</strong></div>
                             ${pokemon.comment ? `<div class="text-muted small mt-1 text-break" style="word-break: break-word; overflow-wrap: anywhere;">${pokemon.comment}</div>` : ''}
@@ -272,7 +286,14 @@ function displayFilteredResults(data, title) {
                         <div class="card-body py-2">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="d-flex align-items-center">
-                                    ${pokemon.sprite_url ? `<img src="${pokemon.sprite_url}" alt="${pokemon.pokemon_name}" style="width:24px;height:24px;margin-right:8px;"/>` : ''}
+                                    ${pokemon.sprite_url ? `
+                                        <img 
+                                            src="${pokemon.sprite_url}"
+                                            alt="${pokemon.pokemon_name}"
+                                            style="width:24px;height:24px;margin-right:8px;cursor:zoom-in;"
+                                            onmouseover="this.dataset.src=this.src; this.src='${pokemon.artwork_url || pokemon.sprite_url}'; this.style.width='48px'; this.style.height='48px';"
+                                            onmouseout="this.src=this.dataset.src; this.style.width='24px'; this.style.height='24px';"
+                                        />` : ''}
                                     <span><strong>${pokemon.pokemon_name}</strong></span>
                                 </div>
                                 <span class="badge bg-primary">${pokemon.rating}</span>

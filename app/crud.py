@@ -81,6 +81,7 @@ def get_top_rated_pokemon(db: Session, limit: int = 10):
         models.Rating.rating,
         models.Rating.comment,
         models.Pokemon.sprite_url,
+        models.Pokemon.artwork_url,
     ).join(models.Pokemon, models.Rating.pokemon_id == models.Pokemon.id)
     results = results.order_by(desc(models.Rating.rating)).limit(limit).all()
     return [
@@ -89,6 +90,7 @@ def get_top_rated_pokemon(db: Session, limit: int = 10):
             "rating": row[1],
             "comment": row[2],
             "sprite_url": row[3],
+            "artwork_url": row[4],
         }
         for row in results
     ]
@@ -101,6 +103,7 @@ def get_bottom_rated_pokemon(db: Session, limit: int = 10):
         models.Rating.rating,
         models.Rating.comment,
         models.Pokemon.sprite_url,
+        models.Pokemon.artwork_url,
     ).join(models.Pokemon, models.Rating.pokemon_id == models.Pokemon.id)
     results = results.order_by(asc(models.Rating.rating)).limit(limit).all()
     return [
@@ -109,6 +112,7 @@ def get_bottom_rated_pokemon(db: Session, limit: int = 10):
             "rating": row[1],
             "comment": row[2],
             "sprite_url": row[3],
+            "artwork_url": row[4],
         }
         for row in results
     ]
@@ -120,6 +124,7 @@ def get_ratings_by_type(db: Session, pokemon_type: str):
         models.Pokemon.name,
         models.Rating.rating,
         models.Pokemon.sprite_url,
+        models.Pokemon.artwork_url,
     ).join(
         models.Pokemon, models.Rating.pokemon_id == models.Pokemon.id
     ).filter(
@@ -127,7 +132,7 @@ def get_ratings_by_type(db: Session, pokemon_type: str):
     ).all()
     
     # Convert to list of dictionaries
-    return [{"pokemon_name": row[0], "rating": row[1], "sprite_url": row[2]} for row in results]
+    return [{"pokemon_name": row[0], "rating": row[1], "sprite_url": row[2], "artwork_url": row[3]} for row in results]
 
 
 def get_ratings_by_generation(db: Session, generation: int):
@@ -136,6 +141,7 @@ def get_ratings_by_generation(db: Session, generation: int):
         models.Pokemon.name,
         models.Rating.rating,
         models.Pokemon.sprite_url,
+        models.Pokemon.artwork_url,
     ).join(
         models.Pokemon, models.Rating.pokemon_id == models.Pokemon.id
     ).filter(
@@ -143,7 +149,7 @@ def get_ratings_by_generation(db: Session, generation: int):
     ).all()
     
     # Convert to list of dictionaries
-    return [{"pokemon_name": row[0], "rating": row[1], "sprite_url": row[2]} for row in results]
+    return [{"pokemon_name": row[0], "rating": row[1], "sprite_url": row[2], "artwork_url": row[3]} for row in results]
 
 
 def get_rating_statistics(db: Session):
